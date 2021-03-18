@@ -97,3 +97,25 @@ def JackKnifeResampling_Profiles(profiles, bins):
     print(' Done!')
     return mean_profile, variance
 
+
+def jackknife(profiles):
+    n0, n1 = np.shape(profiles)
+    if n0 <= 1:
+        raise ValueError('jackknife: data must contain at least 2 array')
+    
+    resamples = np.empty([n0, n1])
+    for i in range(n0):
+        resamples[i] = np.mean(np.delete(profiles, i, axis=0), axis=0)
+    
+    return resamples
+
+def jackknife_results(profiles):
+
+    resamples = jackknife(profiles)
+    mean = np.mean(resamples, axis=0)
+
+    n = np.shape(resamples)[0]
+    variance = (n-1)/n*np.sum(np.power(np.subtract(resamples, mean),2.), axis=0)
+    std = np.sqrt(variance)
+
+    return resamples, mean, std

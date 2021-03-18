@@ -309,28 +309,40 @@ class Profiles(Statistics, Load):
 
         #ratio = np.divide(DD,DR)
         #DDmean = np.mean(DD, axis=0)
+        '''
         ratio = np.zeros(np.shape(DD))
         for i in np.arange(np.shape(DD)[0]):
             for j in np.arange(np.shape(DD)[1]):
                 if DR[i][j]!=0:
                     ratio[i][j] = DD[i][j]/(DR[i][j])
                 else:
-                    ratio[i][j] = DD[i][j]
+                    ratio[i][j] = DD[i][j]'''
             
-        self.ratio = ratio
-        print('Ratio shape:', np.shape(ratio))
+        #self.ratio = ratio
+        #print('Ratio shape:', np.shape(ratio))
 
         for i, low in enumerate(self.ranges[:-1]):
             high = self.ranges[i+1]
             indices = np.argwhere((self.voids['radius']>=low)&(self.voids['radius']<high)).reshape(-1)
-            ratio_range = ratio[indices]
-            print(f'{col.STEP}\tJackKnifeResampling for R_v = [{low},{high}] Mpc/h{col.END}')
+            DD_range = DD[indices]
+            DR_range = DR[indices]
 
-            mean, variance = func.JackKnifeResampling_Profiles(ratio_range, self.bins)
+            print(f'{col.STEP}\tJackKnifeResampling for R_v = [{low},{high}] Mpc/h{col.END}')
+            resamples, DR_range_mean, DR_range_std = func.jackknife_results(DR_range)
+            resamples, DD_range_mean, DD_range_std = func.jackknife_results(DD_range/DR_range_mean)
+
+            #DD_range_mean = np.mean(DD_range,axis=0)
+            #DR_range_mean = np.mean(DR_range,axis=0)
+            #mean = DD_range_mean/DR_range_mean
+            mean = DD_range_mean
+            #variance = np.zeros(np.size(mean))
+            #ratio_range = ratio[indices]
+
+            #mean, variance = func.JackKnifeResampling_Profiles(ratio_range, self.bins)
 
             profiles[i] = mean
             profiles_bins[i] = self.bins
-            profiles_errors[i] = np.sqrt(variance)
+            profiles_errors[i] = DD_range_std
 
         return profiles, profiles_bins, profiles_errors
 
